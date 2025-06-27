@@ -14,6 +14,7 @@ for (id in bird_ids_2023) {
   bird_data_list_2023[[id]] <- Visual_data_Gulls_2023[Visual_data_Gulls_2023$`bird _ID` == id, ]
 }
 
+#Create csv files with the unique input
 write.csv(bird_data_list_2023$`7087`, "input.csv", row.names = FALSE)
 write.csv(bird_data_list_2023$`5654`, "input.csv", row.names = FALSE)
 write.csv(bird_data_list_2023$`5717`, "input.csv", row.names = FALSE)
@@ -50,7 +51,7 @@ bird_data_list_2024 <- list()
 for (id in bird_ids_2024) {
   bird_data_list_2024[[id]] <- Visual_data_Gulls_2024[Visual_data_Gulls_2024$`bird _ID` == id, ]
 }
-# creating csv files for further analysis
+#Create csv files with the unique input
 write.csv(bird_data_list_2024$`7092`, "input.csv", row.names = FALSE)
 write.csv(bird_data_list_2024$`5717`, "input.csv", row.names = FALSE)
 write.csv(bird_data_list_2024$`5965`, "input.csv", row.names = FALSE)
@@ -77,7 +78,7 @@ library(dplyr)
 library(purrr)
 library(readr)
 
-#loading in the needed datasets
+#load in the dataset and wind park polygon
 Visual_data_Gulls_2023 <- read_excel("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Visual_data_Gulls.xlsx", 
                                            sheet = "DATA 2023")
 wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
@@ -88,7 +89,7 @@ Visual_data_Gulls_2023$file_name <- paste0(Visual_data_Gulls_2023$`bird _ID`,"_"
                                  format(Visual_data_Gulls_2023$end_time,"%Y-%m-%d %H:%M:%S"),".csv")
 
 
-# Define and list the folder with your CSV files
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2023"
 csv_files <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
@@ -104,7 +105,7 @@ results_list <- map_dfr(csv_files, function(file) {
   return(sf_points)
 })
 
-# putting the coordinates back inside the data frame
+# putting the coordinates back in
 results_list <- results_list %>%
   mutate(
     longitude = st_coordinates(.)[, 1],
@@ -128,7 +129,7 @@ sf::sf_use_s2(FALSE)
 library(dplyr)
 library(purrr)
 
-#load in the datasets
+#load in the dataset and wind park polygon
 Visual_data_Gulls_2024 <- read_excel("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Visual_data_Gulls.xlsx",
                                      sheet = "DATA 2024", col_types = c("date", "date", "numeric", "text", "numeric","numeric", "numeric",
                                                                         "text"))
@@ -139,7 +140,7 @@ Visual_data_Gulls_2024$file_name <- paste0(Visual_data_Gulls_2024$`bird _ID`,"_"
                                  format(Visual_data_Gulls_2024$Start_time,"%Y-%m-%d %H:%M:%S"),"_",
                                  format(Visual_data_Gulls_2024$end_time,"%Y-%m-%d %H:%M:%S"),".csv")
 
-# Define and list the folder with your CSV files
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2024"
 csv_files <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
@@ -155,7 +156,7 @@ results_list <- map_dfr(csv_files, function(file) {
   return(sf_points)
 })
 
-# putting the coordinates back inside the data frame
+# putting the coordinates back in
 results_list <- results_list %>%
   mutate(
     longitude = st_coordinates(.)[, 1],
@@ -174,29 +175,6 @@ write_csv(as.data.frame(st_drop_geometry(results_list)), "all_tracker_data_with_
 write_csv(as.data.frame(st_drop_geometry(points_inside)), "points_inside_wind_parks_2024.csv")
 ```
 
-```{r unique events inside parks, message=FALSE, warning=FALSE}
-library(readr)
-library(dplyr)
-
-#2023
-all_tracker_data_with_inPark_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2023.csv")
-
-unique_park_events_2023 <- all_tracker_data_with_inPark_2023 %>%
-                            filter(inPark == 1) %>%
-                            distinct(file_name, .keep_all=TRUE)
-
-write_csv(unique_park_events_2023, "events_inside_park_2023.csv")
-
-#2024
-all_tracker_data_with_inPark_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2024.csv")
-
-unique_park_events_2024 <- all_tracker_data_with_inPark_2024 %>%
-                            filter(inPark == 1) %>%
-                            distinct(file_name, .keep_all=TRUE)
-
-write_csv(unique_park_events_2024, "events_inside_park_2024.csv")
-```
-
 ```{r Feeding events inside the park 2023, message=FALSE, warning=FALSE}
 library(readr)
 library(dplyr)
@@ -204,7 +182,7 @@ library(dplyr)
 #load in the dataset
 all_tracker_data_with_inPark_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/all_tracker_data_with_inPark_2023.csv")
 
-#calculate the time/ temperature difference
+#calculate the time and temperature changes
 all_tracker_data_with_inPark_2023 <- all_tracker_data_with_inPark_2023 %>%
   mutate(
     counttime = as.numeric(as.POSIXct(date_time)),
@@ -221,7 +199,7 @@ all_tracker_data_with_inPark_2023 <- all_tracker_data_with_inPark_2023 %>%
   ) %>%
   ungroup()
 
-# Compute largest temperature drop per file
+# Calculate the largest temperature drop per file
 temp_drops_per_file_2023 <- all_tracker_data_with_inPark_2023 %>%
   filter(temp_diff < -2) %>%
   group_by(file_name) %>%
@@ -246,7 +224,7 @@ summary_flags <- all_tracker_data_with_inPark_2023 %>%
     .groups = "drop"
   )
 
-# Combine all indicators and apply your feeding_event logic
+# Combine all indicators and put in the conditions for feeding events
 processed_data_feeding_events_2023 <- summary_flags %>%
   left_join(temp_drops_per_file_2023 %>% select(file_name, feeding_event_temp), by = "file_name") %>%
   mutate(
@@ -263,7 +241,7 @@ strongest_feeding_events_2023 <- all_tracker_data_with_inPark_2023 %>%
   ungroup()
 
 
-# View result
+# download the results
 write_csv(all_tracker_data_with_inPark_2023, "all_tracker_data_with_inPark_2023.csv")
 write_csv(processed_data_feeding_events_2023, "feeding_event_per_filename_2023.csv")
 write_csv(strongest_feeding_events_2023, "Strongest_Feeding_Events_2023.csv")
@@ -276,7 +254,7 @@ library(dplyr)
 #load in the dataset
 all_tracker_data_with_inPark_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2024.csv")
 
-#calculate the time/ temperature difference
+#calculate the time and temperature changes
 all_tracker_data_with_inPark_2024 <- all_tracker_data_with_inPark_2024 %>%
   mutate(
     counttime = as.numeric(as.POSIXct(date_time)),
@@ -293,7 +271,7 @@ all_tracker_data_with_inPark_2024 <- all_tracker_data_with_inPark_2024 %>%
   ) %>%
   ungroup()
 
-# Compute largest temperature drop per file
+# Calculate the largest temperature drop per file
 temp_drops_per_file_2024 <- all_tracker_data_with_inPark_2024 %>%
   filter(temp_diff < -2) %>%
   group_by(file_name) %>%
@@ -318,7 +296,7 @@ summary_flags <- all_tracker_data_with_inPark_2024 %>%
     .groups = "drop"
   )
 
-# Combine all indicators and apply your feeding_event logic
+# Combine all indicators and put in the conditions for feeding events
 processed_data_feeding_events_2024 <- summary_flags %>%
   left_join(temp_drops_per_file_2024 %>% select(file_name, feeding_event_temp), by = "file_name") %>%
   mutate(
@@ -342,7 +320,6 @@ write_csv(strongest_feeding_events_2024, "Strongest_Feeding_Events_2024.csv")
 ```
 
 ```{r visualising plots 2023, message=FALSE, warning=FALSE}
-# Load libraries
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -350,14 +327,14 @@ library(ggmap)
 library(gridExtra)
 library(grid)
 
-# Google Maps API key
+# writing down the API coding
 api_key = "Your own API key"
 register_google(key = api_key)
 
-# Load the full dataset
+# Load the dataset
 Bird_df_2023 <- read_csv("/Users/Constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2023.csv")
 
-# Define the plotting function
+# Defining the plot function
 plot_map <- function(data, zoom = 13, points = 2, return.plot=TRUE){
   data$altitude <- pmax(0, pmin(50, data$altitude))
   data <- data %>% mutate(prediction = ifelse(confidence < 0.60, "Unknown", prediction))
@@ -479,7 +456,7 @@ for (fname in unique_files) {
   
   plot_obj <- plot_map(data_event, zoom = 10, points = 2)
   
-  # Sanitize filename (remove slashes or problematic characters)
+  # clean up de file name
   clean_name <- gsub("[^A-Za-z0-9_]", "_", fname)
   
   ggsave(
@@ -493,7 +470,6 @@ for (fname in unique_files) {
 ```
 
 ```{r visualising plots 2024, message=FALSE, warning=FALSE}
-# Load libraries
 library(dplyr)
 library(ggplot2)
 library(ggmap)
@@ -501,11 +477,11 @@ library(gridExtra)
 library(grid)
 library(readr)
 
-# Google Maps API key
+# writing down the API coding
 api_key = "your own API key"
 register_google(key = api_key)
 
-# Load the full dataset
+# Load the dataset
 Bird_df_2024 <- read_csv("/Users/Constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2024.csv")
 
 # Define the plotting function
@@ -630,7 +606,7 @@ for (fname in unique_files) {
   
   plot_obj <- plot_map(data_event, zoom = 10, points = 2)
   
-  # Sanitize filename (remove slashes or problematic characters)
+  # clean up the name
   clean_name <- gsub("[^A-Za-z0-9_]", "_", fname)
   
   ggsave(
@@ -650,10 +626,9 @@ library(dplyr)
 library(readr)  
 library(ggplot2)    
 library(lwgeom) 
-# 1. Load wind park polygons (shapefile)
-wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
 
-#convex hull events
+# Load in the data
+wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
 strongest_feeding_events_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2023.csv")
 strongest_feeding_outside_2023 <- strongest_feeding_events_2023 %>%
   filter(inPark == 0)
@@ -678,7 +653,7 @@ forteiland_point <- st_as_sf(
              longitude = 4.5767, 
              latitude = 52.465),
   coords = c("longitude", "latitude"),
-  crs = 4326
+  crs = 4326 # Set coordinate system to WGS84
 )
 
 hull_inside <- st_convex_hull(st_union(points_sf_inside))
@@ -752,10 +727,9 @@ library(dplyr)
 library(readr)  
 library(ggplot2)    
 library(lwgeom) 
-# 1. Load wind park polygons (shapefile)
-wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
 
-#convex hull events
+# 1. Load in the data
+wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
 strongest_feeding_events_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2024.csv")
 strongest_feeding_outside_2024 <- strongest_feeding_events_2024 %>%
   filter(inPark == 0)
@@ -775,6 +749,13 @@ points_sf_outside <- st_as_sf(
   crs = 4326  # Set coordinate system to WGS84
 )
 
+forteiland_point <- st_as_sf(
+  data.frame(name = "Forteiland IJmuiden colony", 
+             longitude = 4.5767, 
+             latitude = 52.465),
+  coords = c("longitude", "latitude"),
+  crs = 4326 # Set coordinate system to WGS84
+)
 
 hull_inside <- st_convex_hull(st_union(points_sf_inside))
 hull_inside_windpark <- st_intersection(hull_inside,wind_parks)
@@ -836,8 +817,6 @@ hull_total_2024 <- st_convex_hull(st_union(points_sf_total))
 area_m2_total_2024 <- sum(st_area(hull_total_2024))
 area_km2_total_2024 <- as.numeric(area_m2_total_2024)/1e6
 ```
-
-
 
 ```{r time differences inside and outside the park, message=FALSE, warning=FALSE}
 library(readr)
@@ -902,7 +881,7 @@ summary(model)
 model <- glmer(feeding_event ~ inPark + (1 | device_info_serial) + year, data = feeding_events_per_file_total, family = binomial)
 summary(model)
 
-# Calculate counts for each category
+# Calculating the proportion of total events
 summary_data_total <- feeding_events_per_file_total %>%
   group_by(year)%>%
   summarise(
@@ -914,7 +893,7 @@ summary_data_total <- feeding_events_per_file_total %>%
                names_to = "Event_Type",
                values_to = "Proportion")
 
-# Step 2: Plot the data
+#Plotting the data
 Proportion_Feeding_Events <- ggplot(summary_data_total, aes(x = factor(year), y = Proportion, fill = Event_Type)) +
   geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   scale_fill_manual(values = c("Feeding_Inside_Park" = "red",
@@ -945,14 +924,13 @@ library(readr)
 library(dplyr)    
 library(lme4)
 library(lmerTest)
-library(ggplot2)  
+library(ggplot2)
 
-#2023
+#loading in the data
 feeding_event_durations_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Feeding_Events_Duration_2023.csv")
 feeding_event_durations_2023$year <- 2023
 feeding_event_durations_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Feeding_Events_Duration_2024.csv")
 feeding_event_durations_2024$year <- 2024
-
 feeding_event_durations_total <- rbind(feeding_event_durations_2023, feeding_event_durations_2024)
 
 #logistic model
@@ -967,7 +945,7 @@ feeding_event_durations_total$inPark <- factor(feeding_event_durations_total$inP
                                                labels = c("Outside", "Inside"))
 feeding_event_durations_total$year <- as.factor(feeding_event_durations_total$year)
 
-# Create the grouped boxplot
+#creating the barplots
 Proportion_Feeding_Duration <- ggplot(feeding_event_durations_total, aes(x = year, y = duration_minutes, fill = inPark)) +
   geom_boxplot(position = position_dodge(width = 0.8)) +
   scale_fill_manual(values = c("blue", "red")) +
@@ -1004,14 +982,15 @@ library(readr)
 library(dplyr)    
 library(lme4)
 library(lmerTest)
-library(ggplot2)  
+library(ggplot2)
+library(glmmTMB)
 
 #2023
-# 2. Define and list the folder with your CSV files
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2023"
 file_list_2023 <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
-# Initialize a data frame to store results
+# creating dataframe for the results
 results_2023 <- data.frame(
   file_name = character(),
   count_ExMan_inPark = numeric(),
@@ -1021,11 +1000,8 @@ results_2023 <- data.frame(
 
 # Loop through each file
 for (file in file_list_2023) {
-  
-  # Read the CSV file
   data <- read.csv(file)
-  
-  # Filter rows with confidence >= 0.5
+
   filtered_data_2023 <- subset(data, confidence >= 0.5)
   if (any(filtered_data_2023$inPark == 1)) {
     filtered_data_2023$inPark <- 1
@@ -1039,6 +1015,7 @@ for (file in file_list_2023) {
   ))
 }
 
+#loading in the total dataset
 all_tracker_data_with_inPark_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2023.csv")
 
 file_unique_events_2023 <- all_tracker_data_with_inPark_2023 %>%
@@ -1046,17 +1023,16 @@ file_unique_events_2023 <- all_tracker_data_with_inPark_2023 %>%
   summarise(inPark = ifelse(any(inPark == 1), 1, 0),
             device_info_serial = unique(device_info_serial)
             )
-#filtering the behaviors
-
+#filtering the behaviors per file
 files_ExMan_2023 <- left_join(results_2023, file_unique_events_2023, by = "file_name")
 files_ExMan_2023$year <- 2023
 
 #2024
-# 2. Define and list the folder with your CSV files
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2024"
 file_list_2024 <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
-# Initialize a data frame to store results
+# creating dataframe for the results
 results_2024 <- data.frame(
   file_name = character(),
   count_ExMan_inPark = numeric(),
@@ -1066,11 +1042,8 @@ results_2024 <- data.frame(
 
 # Loop through each file
 for (file in file_list_2024) {
-  
-  # Read the CSV file
   data <- read.csv(file)
   
-  # Filter rows with confidence >= 0.5
   filtered_data_2024 <- subset(data, confidence >= 0.5)
   count_ExMan <- sum(filtered_data_2024$prediction %in% c("ExFlap", "Manouvre"))
   
@@ -1081,6 +1054,7 @@ for (file in file_list_2024) {
   ))
 }
 
+#loading in the total dataset
 all_tracker_data_with_inPark_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2024.csv")
 
 file_unique_events_2024 <- all_tracker_data_with_inPark_2024 %>%
@@ -1088,22 +1062,24 @@ file_unique_events_2024 <- all_tracker_data_with_inPark_2024 %>%
   summarise(inPark = ifelse(any(inPark == 1), 1, 0),
             device_info_serial = unique(device_info_serial)
             )
-#filtering the behaviors
 
+#filtering the behaviors per file
 files_ExMan_2024 <- left_join(results_2024, file_unique_events_2024, by = "file_name")
 files_ExMan_2024$year <- 2024
-#binding together and analysing
+
+#binding both dataframes together and linear model
 files_ExMan <- rbind(files_ExMan_2023, files_ExMan_2024)
 
 model <- glmmTMB(count_ExMan_inPark ~ inPark + (1 | device_info_serial) + (1 | year), data = files_ExMan, family = nbinom2)
 summary(model)
 
- # First make sure inPark and year are factors with nice labels
+#preparation for plotting
 files_ExMan$inPark <- factor(files_ExMan$inPark,
                              levels = c(0, 1),
                              labels = c("Outside", "Inside"))
 files_ExMan$year <- as.factor(files_ExMan$year)
-#plotting the boxplots
+
+#creating the boxplots
 count_ExMan_inPark <- ggplot(files_ExMan, aes(x = inPark, y = count_ExMan_inPark, fill = inPark)) +
   geom_boxplot(outlier.shape = 1, alpha = 1, color = "black") +
   facet_wrap(~ year) +
@@ -1112,8 +1088,6 @@ count_ExMan_inPark <- ggplot(files_ExMan, aes(x = inPark, y = count_ExMan_inPark
   labs(x = "In Park", y = "Absolute count of ExMan (log10)", fill = "Park Status") +
   theme_minimal() +
   theme(legend.position = "right")
-
-#saving the plots
 
 ggsave(
    filename =  "count_ExMan_inPark.pdf",
@@ -1124,13 +1098,13 @@ ggsave(
   )
 print(count_ExMan_inPark)
 
-#calculating mean, min, max proportion_ExMan
+#calculating mean, min, max of the extensive maneuvering
 summary_stats_ExMan_inPark <- files_ExMan %>%
   group_by(year, inPark) %>%
   summarise(
-    mean_count = mean(count_ExMan),
-    min_count = min(count_ExMan),
-    max_count = max(count_ExMan),  # Fixed column name
+    mean_count = mean(count_ExMan_inPark),
+    min_count = min(count_ExMan_inPark),
+    max_count = max(count_ExMan_inPark),
     .groups = 'drop'
   )
 print(summary_stats_ExMan_inPark)
@@ -1141,13 +1115,15 @@ library(readr)
 library(dplyr)    
 library(lme4)
 library(lmerTest)
-library(ggplot2)  
+library(ggplot2)
+library(glmmTMB)
 
-#2023
-# 2. Define and list the folder with your CSV files
+# 2023
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2023"
 file_list_2023 <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
+# creating dataframe for the results
 results_2023 <- data.frame(
   file_name = character(),
   count_ExMan_Feeding = numeric(),
@@ -1157,11 +1133,8 @@ results_2023 <- data.frame(
 
 # Loop through each file
 for (file in file_list_2023) {
-  
-  # Read the CSV file
   data <- read.csv(file)
   
-  # Filter rows with confidence >= 0.5
   filtered_data_2023 <- subset(data, confidence >= 0.5)
   if (any(filtered_data_2023$inPark == 1)) {
     filtered_data_2023$inPark <- 1
@@ -1175,6 +1148,7 @@ for (file in file_list_2023) {
   ))
 }
 
+#loading in the total dataset
 strongest_feeding_events_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2023.csv")
 results_2023_filtered <- results_2023 %>%
   filter(file_name %in% strongest_feeding_events_2023$file_name)
@@ -1184,17 +1158,17 @@ file_unique_events_2023 <- strongest_feeding_events_2023 %>%
   summarise(inPark = ifelse(any(inPark == 1), 1, 0),
             device_info_serial = unique(device_info_serial)
             )
-#filtering the behaviors
 
+#filtering the behaviors per file
 files_ExMan_2023 <- left_join(results_2023_filtered, file_unique_events_2023, by = "file_name")
 files_ExMan_2023$year <- 2023
 
 #2024
-# 2. Define and list the folder with your CSV files
+# Define list the folder with the CSV files
 csv_folder <- "/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Processed_Data_Gulls/processed_data_2024"
 file_list_2024 <- list.files(path = csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
-# Initialize a data frame to store results
+# creating dataframe for the results
 results_2024 <- data.frame(
   file_name = character(),
   count_ExMan_Feeding = numeric(),
@@ -1204,11 +1178,8 @@ results_2024 <- data.frame(
 
 # Loop through each file
 for (file in file_list_2024) {
-  
-  # Read the CSV file
   data <- read.csv(file)
   
-  # Filter rows with confidence >= 0.5
   filtered_data_2024 <- subset(data, confidence >= 0.5)
   count_ExMan <- sum(filtered_data_2024$prediction %in% c("ExFlap", "Manouvre"))
   
@@ -1219,6 +1190,7 @@ for (file in file_list_2024) {
   ))
 }
 
+#loading in the total dataset
 strongest_feeding_events_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2024.csv")
 
 file_unique_events_2024 <- strongest_feeding_events_2024 %>%
@@ -1227,24 +1199,25 @@ file_unique_events_2024 <- strongest_feeding_events_2024 %>%
             device_info_serial = unique(device_info_serial)
             )
 
-#filtering the behaviors
+#filtering the behaviors per file
 results_2024_filtered <- results_2024 %>%
   filter(file_name %in% strongest_feeding_events_2024$file_name)
 files_ExMan_2024 <- left_join(results_2024_filtered, file_unique_events_2024,  by = "file_name")
 files_ExMan_2024$year <- 2024
-#binding together and analysing
+
+#binding both dataframes together and linear model
 files_ExMan <- rbind(files_ExMan_2023, files_ExMan_2024)
 
 model <- glmmTMB(count_ExMan_Feeding ~ inPark + (1 | device_info_serial) + (1 | year), data = files_ExMan, family = nbinom2)
 summary(model)
 
- # First make sure inPark and year are factors with nice labels
+#preparation for plotting
 files_ExMan$inPark <- factor(files_ExMan$inPark,
                              levels = c(0, 1),
                              labels = c("Outside", "Inside"))
 files_ExMan$year <- as.factor(files_ExMan$year)
 
-#plotting the boxplots
+#Creating the boxplots
 count_ExMan_Feeding <- ggplot(files_ExMan, aes(x = inPark, y = count_ExMan_Feeding, fill = inPark)) +
   geom_boxplot(outlier.shape = 1, alpha = 1, color = "black") +
   facet_wrap(~ year) +
@@ -1253,8 +1226,6 @@ count_ExMan_Feeding <- ggplot(files_ExMan, aes(x = inPark, y = count_ExMan_Feedi
   labs(x = "In Park", y = "Absolute count of ExMan (log10)", fill = "Park Status") +
   theme_minimal() +
   theme(legend.position = "right")
-
-#saving the plots
 
 ggsave(
    filename =  "count_ExMan_Feeding.pdf",
@@ -1265,13 +1236,13 @@ ggsave(
   )
 print(count_ExMan_Feeding)
 
-#calculating mean, min, max proportion_ExMan
+#calculating mean, min, max of the extensive maneuvering while feeding
 summary_stats_ExMan_Feeding <- files_ExMan %>%
   group_by(year, inPark) %>%
   summarise(
     mean_count = mean(count_ExMan_Feeding),
     min_count = min(count_ExMan_Feeding),
-    max_count = max(count_ExMan_Feeding),  # Fixed column name
+    max_count = max(count_ExMan_Feeding),
     .groups = 'drop'
   )
 print(summary_stats_ExMan_Feeding)
@@ -1283,12 +1254,10 @@ sf::sf_use_s2(FALSE)
 library(dplyr)   
 library(readr)   
 library(ggplot2)    
+
+# 1. Load in the data
 all_tracker_data_with_inPark_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Park_Events_Gulls/all_tracker_data_with_inPark_2023.csv")
-
-# 1. Load wind park polygons (shapefile)
 wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
-
-# 2. Load tracker coordinates (CSV or dataframe)
 tracker_data <- all_tracker_data_with_inPark_2023%>%
   filter(file_name=="5615_2023-06-13 00:04:30_2023-06-13 10:00:38.csv")
 
@@ -1299,10 +1268,9 @@ tracker_sf <- st_as_sf(
   crs = 4326  # Set coordinate system to WGS84
 )
 
-#transforming wind_parks to match tracker_sf CRS
+#transforming windpark and tracker to the same CRS
 wind_parks <- st_transform(wind_parks, st_crs(tracker_sf))
 
-# Perform spatial join to find points inside wind parks
 overlap_results <- st_join(
   tracker_sf,       
   wind_parks,       
@@ -1362,7 +1330,7 @@ tracker_sf_2023 <- st_as_sf(
   crs = 4326  # Set coordinate system to WGS84
 )
 
-#transforming wind_parks to match tracker_sf CRS
+#transforming windpark and tracker to the same CRS
 wind_parks_2023 <- st_transform(wind_parks, st_crs(tracker_sf_2023))
 overlap_results_2023 <- st_join(
   tracker_sf_2023,       
@@ -1371,7 +1339,7 @@ overlap_results_2023 <- st_join(
   left = FALSE      
 )
 
-# Count by park
+#Count for each park
 summary_table_2023 <- overlap_results_2023 %>%
   filter(!is.na(name)) %>% 
   distinct(file_name, name)
@@ -1393,7 +1361,7 @@ tracker_sf_2024 <- st_as_sf(
   crs = 4326  # Set coordinate system to WGS84
 )
 
-#transforming wind_parks to match tracker_sf CRS
+#transforming windpark and tracker to the same CRS
 wind_parks_2024 <- st_transform(wind_parks, st_crs(tracker_sf_2024))
 overlap_results_2024 <- st_join(
   tracker_sf_2024,       
@@ -1402,7 +1370,7 @@ overlap_results_2024 <- st_join(
   left = FALSE      
 )
 
-# Count by park
+# Count for each park
 summary_table_2024 <- overlap_results_2024 %>%
   filter(!is.na(name)) %>% 
   distinct(file_name, name)
@@ -1421,10 +1389,8 @@ library(dplyr)
 library(readr)  
 library(ggplot2)    
 library(lwgeom) 
-# 1. Load wind park polygons (shapefile)
+#Load in the data
 wind_parks <- st_read("/Users/constantijn/Desktop/2025_Birds/Data/Data_RAW/Wind Farms (polygons)/windfarmspolyPolygon.shp")
-
-#convex hull events
 strongest_feeding_events_2023 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2023.csv")
 strongest_feeding_events_2024 <- read_csv("/Users/constantijn/Desktop/2025_Birds/Data/Data_Cleaned/Feeding_Events_Gulls/Strongest_Feeding_Events_2024.csv")
 strongest_feeding_events_total <-  rbind(strongest_feeding_events_2023, strongest_feeding_events_2024)
@@ -1453,7 +1419,7 @@ forteiland_point <- st_as_sf(
              longitude = 4.5767, 
              latitude = 52.465),
   coords = c("longitude", "latitude"),
-  crs = 4326
+  crs = 4326 # Set coordinate system to WGS84
 )
 
 
