@@ -1,0 +1,2 @@
+device_info_serial,date_time,index,speed_2d,prediction,confidence,latitude,longitude,altitude,temperature,runtime,model
+7014,2024-06-16 14:37:16,0,0.6125,SitStand,1.00,52.8331159,4.8524468,-5,37.5,2025-05-21 14:41:26,45_best

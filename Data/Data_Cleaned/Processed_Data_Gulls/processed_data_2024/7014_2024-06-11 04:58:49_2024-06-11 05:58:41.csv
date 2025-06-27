@@ -1,0 +1,4 @@
+device_info_serial,date_time,index,speed_2d,prediction,confidence,latitude,longitude,altitude,temperature,runtime,model
+7014,2024-06-11 04:58:49,0,9.9925,Manouvre,0.92,52.3738956,4.5743010,70,29.2,2025-05-21 14:39:40,45_best
+7014,2024-06-11 05:28:41,0,6.9764,Flap,0.90,52.3857394,4.4652060,1,30.5,2025-05-21 14:39:40,45_best
+7014,2024-06-11 05:58:33,0,14.1819,Flap,0.86,52.4648113,4.5760528,11,29.9,2025-05-21 14:39:40,45_best
